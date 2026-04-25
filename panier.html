@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Panier - Hieb | Vous faciliter la vie</title>
+    <style>
+        :root {
+            --orange: #FF7F00;
+            --yellow-pale: #FFEE99;
+            --dark: #222222;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fffaf0;
+            color: var(--dark);
+        }
+        
+        /* HEADER RESPONSIVE */
+        header {
+            background: linear-gradient(135deg, var(--orange), #FF9900);
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(255, 127, 0, 0.3);
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .logo h1 { font-size: 1.8rem; font-weight: 900; }
+        .slogan { font-size: 0.8rem; font-style: italic; opacity: 0.95; }
+        
+        nav { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            padding: 5px 8px;
+        }
+        nav a:hover { color: var(--yellow-pale); }
+        
+        .cart-icon { font-size: 1.5rem; position: relative; cursor: pointer; margin-left: 5px; }
+        .cart-count {
+            position: absolute; top: -8px; right: -10px;
+            background: var(--yellow-pale); color: var(--orange);
+            font-size: 0.7rem; font-weight: bold; width: 18px; height: 18px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Menu Burger */
+        .burger-menu { display: none; cursor: pointer; z-index: 1001; }
+        .burger-icon { width: 28px; height: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+        .burger-icon span { width: 100%; height: 3px; background: white; border-radius: 3px; transition: all 0.3s ease; }
+        
+        .mobile-menu {
+            position: fixed; top: 0; right: -100%; width: 260px; height: 100vh;
+            background: linear-gradient(135deg, var(--orange), #FF9900);
+            z-index: 999; transition: right 0.3s ease; padding-top: 70px;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+        }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu a {
+            display: block; color: white; text-decoration: none; padding: 15px 25px;
+            font-size: 1.1rem; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; display: none; }
+        .menu-overlay.active { display: block; }
+
+        .section { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
+        h2 { text-align: center; font-size: 1.8rem; color: var(--orange); margin-bottom: 25px; position: relative; }
+        h2::after { content: ''; width: 60px; height: 4px; background: var(--yellow-pale); position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); border-radius: 3px; }
+        
+        .cart-container { background: white; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 30px; }
+        .cart-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; gap: 15px; flex-wrap: wrap; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; }
+        .item-details { flex: 1; min-width: 150px; }
+        .item-price { font-size: 1.2rem; font-weight: 700; color: var(--orange); }
+        .quantity-control { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+        .quantity-btn { width: 32px; height: 32px; background: var(--yellow-pale); color: var(--orange); border: none; border-radius: 50%; cursor: pointer; }
+        .remove-btn { background: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 25px; cursor: pointer; }
+        
+        .cart-summary { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); max-width: 400px; margin: 20px auto 0; text-align: center; }
+        .total { font-size: 1.6rem; color: var(--orange); font-weight: 700; margin: 15px 0; }
+        .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .btn-orange { background: var(--orange); color: white; }
+        .btn-empty { background: #ddd; color: #555; }
+        
+        .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4); z-index: 9999; }
+        .empty-cart { text-align: center; padding: 50px 20px; color: #666; }
+        footer { background: var(--dark); color: var(--yellow-pale); text-align: center; padding: 30px 20px 20px; margin-top: 50px; }
+
+        @media (max-width: 768px) { nav { display: none; } .burger-menu { display: block; } .cart-item { flex-direction: column; text-align: center; } .item-details { text-align: center; } .quantity-control { justify-content: center; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo"><h1>HIEB</h1><div class="slogan">vous faciliter la vie</div></div>
+            <nav><a href="index.html">Accueil</a><a href="shop.html">Boutique</a><a href="panier.html">Panier</a><a href="administration.html">Administration</a></nav>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="cart-icon" onclick="window.location.href='panier.html'">🛒<span id="cart-count-header" class="cart-count">0</span></div>
+                <div class="burger-menu" id="burgerMenu"><div class="burger-icon"><span></span><span></span><span></span></div></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-menu" id="mobileMenu"><a href="index.html">🏠 Accueil</a><a href="shop.html">🛍️ Boutique</a><a href="panier.html">🛒 Panier</a><a href="administration.html">🔧 Administration</a></div>
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <div class="section">
+        <h2>🛒 Votre Panier</h2>
+        <div class="cart-container" id="cart-items"></div>
+        <div class="cart-summary" id="cart-summary" style="display: none;">
+            <h3>💰 Total de votre commande</h3>
+            <div class="total" id="total-price">0 FCFA</div>
+            <button onclick="passerCommande()" class="btn btn-orange">📱 Passer la commande</button>
+            <button onclick="clearCart()" class="btn btn-empty">🗑️ Vider le panier</button>
+        </div>
+        <div id="empty-cart" class="empty-cart" style="display: none;">
+            <h3>🛒 Votre panier est vide</h3>
+            <p>Vous n'avez encore ajouté aucun article.</p>
+            <a href="shop.html" class="btn btn-orange" style="display:inline-block; width:auto; padding:12px 30px; margin-top:15px;">🛍️ Commencer mes achats</a>
+        </div>
+    </div>
+
+    <a href="https://wa.me/24176483527" class="whatsapp-btn" target="_blank" id="whatsapp-link">📱</a>
+
+    <footer><p>&copy; 2026 Hieb - Vous faciliter la vie • Tous droits réservés</p></footer>
+
+    <script>
+        let cart = [];
+        const burgerMenu = document.getElementById('burgerMenu');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        
+        function toggleMenu() { burgerMenu.classList.toggle('active'); mobileMenu.classList.toggle('active'); menuOverlay.classList.toggle('active'); }
+        function closeMenu() { burgerMenu.classList.remove('active'); mobileMenu.classList.remove('active'); menuOverlay.classList.remove('active'); }
+        if (burgerMenu) { burgerMenu.addEventListener('click', toggleMenu); menuOverlay.addEventListener('click', closeMenu); }
+
+        function formatFCFA(prix) { return new Intl.NumberFormat('fr-FR').format(Math.round(prix)) + ' FCFA'; }
+
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            cart = savedCart ? JSON.parse(savedCart) : [];
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            const summary = document.getElementById('cart-summary');
+            const empty = document.getElementById('empty-cart');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                if (empty) empty.style.display = 'block';
+                if (summary) summary.style.display = 'none';
+                updateCartCount();
+                return;
+            }
+
+            if (empty) empty.style.display = 'none';
+            if (summary) summary.style.display = 'block';
+
+            let total = 0;
+            cart.forEach((item, index) => {
+                const quantity = item.quantity || 1;
+                const itemTotal = item.price * quantity;
+                total += itemTotal;
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <img src="https://picsum.photos/300/220?random=${item.id}" alt="${item.name}">
+                    <div class="item-details">
+                        <h4>${item.name}</h4>
+                        <div class="item-price">${formatFCFA(item.price)}</div>
+                        <div class="quantity-control">
+                            <button onclick="changeQuantity(${index}, -1)" class="quantity-btn">-</button>
+                            <span class="quantity">${quantity}</span>
+                            <button onclick="changeQuantity(${index}, 1)" class="quantity-btn">+</button>
+                        </div>
+                    </div>
+                    <div><strong>${formatFCFA(itemTotal)}</strong><br><br><button onclick="removeItem(${index})" class="remove-btn">Supprimer</button></div>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('total-price').textContent = formatFCFA(total);
+            updateCartCount();
+            updateWhatsAppLink();
+        }
+
+        window.changeQuantity = function(index, change) {
+            const newQuantity = (cart[index].quantity || 1) + change;
+            if (newQuantity < 1) cart.splice(index, 1);
+            else cart[index].quantity = newQuantity;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        };
+
+        window.removeItem = function(index) {
+            if (confirm("Supprimer cet article ?")) { cart.splice(index, 1); localStorage.setItem('cart', JSON.stringify(cart)); renderCart(); }
+        };
+
+        window.clearCart = function() {
+            if (confirm("Vider tout le panier ?")) { localStorage.removeItem('cart'); cart = []; renderCart(); }
+        };
+
+        window.passerCommande = function() {
+            if (cart.length === 0) return;
+            let message = "🛍️ *NOUVELLE COMMANDE HIEB*\n\nVoici ma commande :\n\n";
+            cart.forEach(item => {
+                const quantity = item.quantity || 1;
+                message += `📦 ${item.name}\n   Quantité: ${quantity}\n   Prix: ${formatFCFA(item.price * quantity)}\n\n`;
+            });
+            const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            message += `💰 *TOTAL: ${formatFCFA(total)}*\n\nMerci de me confirmer la disponibilité.`;
+            window.open(`https://wa.me/24176483527?text=${encodeURIComponent(message)}`, '_blank');
+        };
+
+        function updateCartCount() {
+            let count = 0;
+            cart.forEach(item => count += item.quantity || 1);
+            document.getElementById('cart-count-header').textContent = count;
+        }
+
+        function updateWhatsAppLink() {
+            const whatsappLink = document.getElementById('whatsapp-link');
+            if (cart.length > 0) {
+                let message = "Bonjour Hieb, je souhaite passer ma commande.\n\n";
+                cart.forEach(item => message += `- ${item.name} x ${item.quantity || 1} = ${formatFCFA(item.price * (item.quantity || 1))}\n`);
+                const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+                message += `\nTOTAL: ${formatFCFA(total)}`;
+                whatsappLink.href = `https://wa.me/24176483527?text=${encodeURIComponent(message)}`;
+            } else {
+                whatsappLink.href = "https://wa.me/24176483527?text=Bonjour%20Hieb%2C%20je%20souhaite%20en%20savoir%20plus.";
+            }
+        }
+
+        window.onload = loadCart;
+    </script>
+</body>
+</html>
