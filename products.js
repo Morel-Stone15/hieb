@@ -6,7 +6,7 @@ const products = [
         prix: 15000,
         categorie: "Vêtements Homme",
         vendeur: "Hieb Store",
-        image: "https://picsum.photos/300/240?random=1"
+        image: "uploads/1775300102_img1.jpeg"
     },
     {
         id: 2,
@@ -15,7 +15,7 @@ const products = [
         prix: 12000,
         categorie: "Vêtements Femme",
         vendeur: "Hieb Store",
-        image: "https://picsum.photos/300/240?random=2"
+        image: "uploads/1775307808_img2.jpeg"
     },
     {
         id: 3,
@@ -24,7 +24,7 @@ const products = [
         prix: 25000,
         categorie: "Chaussures Homme",
         vendeur: "Foot Gear",
-        image: "https://picsum.photos/300/240?random=3"
+        image: "uploads/1775337156_heib tenue sten.jpeg"
     },
     {
         id: 4,
@@ -33,7 +33,7 @@ const products = [
         prix: 30000,
         categorie: "Chaussures Femme",
         vendeur: "Foot Gear",
-        image: "https://picsum.photos/300/240?random=4"
+        image: "uploads/1775337336_WhatsApp Image 2026-04-04 at 17.41.30.jpeg"
     },
     {
         id: 5,
@@ -42,7 +42,7 @@ const products = [
         prix: 5000,
         categorie: "Cosmétiques",
         vendeur: "Glow Up",
-        image: "https://picsum.photos/300/240?random=5"
+        image: "uploads/1775337429_WhatsApp Image 2026-04-04 at 17.41.31.jpeg"
     },
     {
         id: 6,
@@ -51,7 +51,7 @@ const products = [
         prix: 8000,
         categorie: "Aliments",
         vendeur: "Hieb Store",
-        image: "https://picsum.photos/300/240?random=6"
+        image: "uploads/1775337617_WhatsApp Image 2026-04-04 at 17.54.48.jpeg"
     }
 ];
 
