@@ -224,14 +224,73 @@
 
         window.passerCommande = function() {
             if (cart.length === 0) return;
-            let message = "🛍️ *NOUVELLE COMMANDE HIEB*\n\nVoici ma commande :\n\n";
+            
+            // 1. Save to local_orders for Admin tracking
+            const orders = JSON.parse(localStorage.getItem('local_orders') || '[]');
+            const products = JSON.parse(localStorage.getItem('local_products') || '[]');
+            
             cart.forEach(item => {
-                const quantity = item.quantity || 1;
-                message += `📦 ${item.name}\n   Quantité: ${quantity}\n   Prix: ${formatFCFA(item.price * quantity)}\n\n`;
+                // Find full product info if possible to get seller name
+                const fullProd = products.find(p => p.id === item.id);
+                orders.push({
+                    id: Date.now() + Math.random(),
+                    nom: item.name,
+                    prix: item.price,
+                    quantity: item.quantity || 1,
+                    vendeur: fullProd ? fullProd.vendeur : 'Inconnu',
+                    date: new Date().toISOString()
+                });
             });
-            const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-            message += `💰 *TOTAL: ${formatFCFA(total)}*\n\nMerci de me confirmer la disponibilité.`;
-            window.open(`https://wa.me/24176483527?text=${encodeURIComponent(message)}`, '_blank');
+            localStorage.setItem('local_orders', JSON.stringify(orders));
+
+            // 2. Group items by seller for redirection
+            const groups = {};
+            cart.forEach(item => {
+                const phone = item.sellerPhone || '24176483527';
+                if (!groups[phone]) groups[phone] = [];
+                groups[phone].push(item);
+            });
+
+            // 3. Notification of purchase
+            alert("✅ Commande enregistrée ! Redirection vers WhatsApp...");
+
+            // 4. Redirect to WhatsApp (taking the first group or handling multiple)
+            const phones = Object.keys(groups);
+            
+            if (phones.length === 1) {
+                const phone = phones[0];
+                const items = groups[phone];
+                let message = "🛍️ *NOUVELLE COMMANDE HIEB*\n\nVoici ma commande :\n\n";
+                items.forEach(item => {
+                    const quantity = item.quantity || 1;
+                    message += `📦 ${item.name}\n   Quantité: ${quantity}\n   Prix: ${formatFCFA(item.price * quantity)}\n\n`;
+                });
+                const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+                message += `💰 *TOTAL: ${formatFCFA(total)}*\n\nMerci de me confirmer la disponibilité.`;
+                
+                localStorage.removeItem('cart'); // Clear cart after order
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+                window.location.reload();
+            } else {
+                // Multiple sellers: Open multiple or ask
+                alert("Votre panier contient des articles de différents vendeurs. Nous allons ouvrir plusieurs discussions WhatsApp.");
+                phones.forEach((phone, index) => {
+                    const items = groups[phone];
+                    let message = `🛍️ *COMMANDE HIEB (Partie ${index+1}/${phones.length})*\n\n`;
+                    items.forEach(item => {
+                        const quantity = item.quantity || 1;
+                        message += `📦 ${item.name}\n   Quantité: ${quantity}\n   Prix: ${formatFCFA(item.price * quantity)}\n\n`;
+                    });
+                    const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+                    message += `💰 *TOTAL: ${formatFCFA(total)}*`;
+                    
+                    setTimeout(() => {
+                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+                    }, index * 1000);
+                });
+                localStorage.removeItem('cart');
+                setTimeout(() => window.location.reload(), phones.length * 1000);
+            }
         };
 
         function updateCartCount() {
@@ -243,11 +302,13 @@
         function updateWhatsAppLink() {
             const whatsappLink = document.getElementById('whatsapp-link');
             if (cart.length > 0) {
-                let message = "Bonjour Hieb, je souhaite passer ma commande.\n\n";
+                // By default, contact the first seller in the cart
+                const phone = cart[0].sellerPhone || '24176483527';
+                let message = "Bonjour, je souhaite passer ma commande.\n\n";
                 cart.forEach(item => message += `- ${item.name} x ${item.quantity || 1} = ${formatFCFA(item.price * (item.quantity || 1))}\n`);
                 const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
                 message += `\nTOTAL: ${formatFCFA(total)}`;
-                whatsappLink.href = `https://wa.me/24176483527?text=${encodeURIComponent(message)}`;
+                whatsappLink.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
             } else {
                 whatsappLink.href = "https://wa.me/24176483527?text=Bonjour%20Hieb%2C%20je%20souhaite%20en%20savoir%20plus.";
             }

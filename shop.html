@@ -404,11 +404,11 @@
             if (countElement) countElement.textContent = count;
         }
 
-        window.addToCart = function(id, name, price) {
+        window.addToCart = function(id, name, price, sellerPhone) {
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const existing = cart.find(item => item.id === id);
             if (existing) existing.quantity = (existing.quantity || 1) + 1;
-            else cart.push({id, name, price, quantity: 1});
+            else cart.push({id, name, price, quantity: 1, sellerPhone});
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
             
@@ -422,6 +422,11 @@
             notif.textContent = "✓ " + name + " ajouté au panier";
             document.body.appendChild(notif);
             setTimeout(() => notif.remove(), 2000);
+        };
+        
+        window.buyNow = function(id, name, price, sellerPhone) {
+            window.addToCart(id, name, price, sellerPhone);
+            window.location.href = 'panier.html';
         };
 
         function renderProducts(filter = '') {
@@ -438,9 +443,14 @@
                     <div class="product-info">
                         <h4>${p.nom}</h4>
                         <div class="price">${formatFCFA(p.prix)}</div>
-                        <button onclick="addToCart(${p.id}, '${p.nom.replace(/'/g, "\\'")}', ${p.prix})" class="add-to-cart">
-                            ➕ Ajouter au panier
-                        </button>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="addToCart(${p.id}, '${p.nom.replace(/'/g, "\\'")}', ${p.prix}, '${p.vendeurPhone || '24176483527'}')" class="add-to-cart" style="flex:1;">
+                                🛒 Panier
+                            </button>
+                            <button onclick="buyNow(${p.id}, '${p.nom.replace(/'/g, "\\'")}', ${p.prix}, '${p.vendeurPhone || '24176483527'}')" class="add-to-cart" style="flex:1; background:var(--dark);">
+                                📱 Acheter
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');

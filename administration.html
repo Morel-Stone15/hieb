@@ -236,6 +236,10 @@
                 <h3 id="stat-produits">0</h3>
                 <p>Articles exposés</p>
             </div>
+            <div class="stat-card">
+                <h3 id="stat-ventes">0</h3>
+                <p>Produits vendus</p>
+            </div>
         </div>
 
         <!-- SHARED PRODUCT FORM CARD -->
@@ -292,6 +296,27 @@
                     </form>
                 </div>
             </div>
+
+            <!-- ADMIN ONLY: SALES HISTORY -->
+            <div class="card" id="sales-history-card" style="display: none; grid-column: 1 / -1;">
+                <h2 class="section-title">💰 Historique des Ventes</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Produit</th>
+                                <th>Vendeur</th>
+                                <th>Prix</th>
+                                <th>Qté</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 </div>
@@ -302,6 +327,7 @@
     let products = JSON.parse(localStorage.getItem('local_products')) || defaultProducts;
     let categories = JSON.parse(localStorage.getItem('local_categories')) || defaultCategories;
     let users = JSON.parse(localStorage.getItem('local_users')) || [];
+    let orders = JSON.parse(localStorage.getItem('local_orders')) || [];
     let currentUser = null;
     let currentImageData = "";
 
@@ -338,7 +364,7 @@
         const pass = document.getElementById('login-pass').value;
 
         if (role === 'admin') {
-            if (email === 'admin@hieb.com' && pass === 'admin123') currentUser = { role: 'admin', name: 'Administrateur Principal' };
+            if (email === 'admin@hieb.com' && pass === 'admin123') currentUser = { role: 'admin', name: 'Administrateur Principal', phone: '24176483527' };
             else return alert("Identifiants admin incorrects !");
         } else {
             const user = users.find(u => u.email === email && u.pass === pass);
@@ -378,11 +404,13 @@
         // Admin specific visibility
         document.getElementById('admin-stats').style.display = isAdm ? 'flex' : 'none';
         document.getElementById('seller-mgmt-card').style.display = isAdm ? 'block' : 'none';
+        document.getElementById('sales-history-card').style.display = isAdm ? 'block' : 'none';
         document.getElementById('admin-only-fields').style.display = isAdm ? 'block' : 'none';
         
         if (isAdm) {
             document.getElementById('stat-vendeurs').textContent = users.length;
             document.getElementById('stat-produits').textContent = products.length;
+            document.getElementById('stat-ventes').textContent = orders.length;
             document.getElementById('list-title').textContent = "📋 Tous les produits";
             document.getElementById('table-head').innerHTML = "<th>Image</th><th>Vendeur</th><th>Produit</th><th>Prix</th><th>Actions</th>";
             
@@ -390,6 +418,7 @@
             document.getElementById('prod-vendeur').innerHTML = '<option value="Hieb Admin">Hieb Admin</option>' + users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
             
             renderSellerList();
+            renderSalesList();
         } else {
             document.getElementById('list-title').textContent = "📋 Mes produits";
             document.getElementById('table-head').innerHTML = "<th>Image</th><th>Produit</th><th>Prix</th><th>Actions</th>";
@@ -424,6 +453,20 @@
         `).join('') || '<tr><td colspan="3" style="text-align:center">Aucun vendeur inscrit.</td></tr>';
     }
 
+    function renderSalesList() {
+        const list = document.getElementById('sales-list-body');
+        list.innerHTML = orders.map(o => `
+            <tr>
+                <td><small>${new Date(o.date).toLocaleDateString()}</small></td>
+                <td><strong>${o.nom}</strong></td>
+                <td>${o.vendeur}</td>
+                <td>${o.prix}</td>
+                <td>x${o.quantity}</td>
+                <td><strong>${o.prix * o.quantity} FCFA</strong></td>
+            </tr>
+        `).reverse().join('') || '<tr><td colspan="6" style="text-align:center">Aucune vente enregistrée.</td></tr>';
+    }
+
     window.deleteProduct = (idx) => { if (confirm("Supprimer ce produit ?")) { products.splice(idx, 1); localStorage.setItem('local_products', JSON.stringify(products)); setupUI(); } };
 
     window.deleteUser = (userId) => {
@@ -444,9 +487,27 @@
         e.preventDefault();
         if (!currentImageData) return alert("Sélectionnez une image !");
         const isAdm = currentUser.role === 'admin';
-        const vendor = isAdm ? document.getElementById('prod-vendeur').value : currentUser.name;
+        const vendorName = isAdm ? document.getElementById('prod-vendeur').value : currentUser.name;
         
-        products.push({ id: Date.now(), nom: document.getElementById('prod-nom').value, description: document.getElementById('prod-desc').value, prix: parseInt(document.getElementById('prod-prix').value), categorie: document.getElementById('prod-cat').value, vendeur: vendor, image: currentImageData });
+        let vendorPhone = currentUser.phone;
+        if (isAdm && vendorName !== 'Hieb Admin') {
+            const vendor = users.find(u => u.name === vendorName);
+            if (vendor) vendorPhone = vendor.phone;
+        } else if (isAdm && vendorName === 'Hieb Admin') {
+            vendorPhone = '24176483527'; // Default admin phone
+        }
+
+        products.push({ 
+            id: Date.now(), 
+            nom: document.getElementById('prod-nom').value, 
+            description: document.getElementById('prod-desc').value, 
+            prix: parseInt(document.getElementById('prod-prix').value), 
+            categorie: document.getElementById('prod-cat').value, 
+            vendeur: vendorName, 
+            vendeurPhone: vendorPhone,
+            image: currentImageData 
+        });
+        
         try {
             localStorage.setItem('local_products', JSON.stringify(products));
             e.target.reset(); currentImageData = ""; document.getElementById('preview-tag').style.display = 'none'; document.getElementById('img-placeholder').style.display = 'block';

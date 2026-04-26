@@ -6,6 +6,7 @@ const products = [
         prix: 15000,
         categorie: "Vêtements Homme",
         vendeur: "Hieb Store",
+        vendeurPhone: "24176483527",
         image: "uploads/1775300102_img1.jpeg"
     },
     {
@@ -24,6 +25,7 @@ const products = [
         prix: 25000,
         categorie: "Chaussures Homme",
         vendeur: "Foot Gear",
+        vendeurPhone: "24100000000",
         image: "uploads/1775337156_heib tenue sten.jpeg"
     },
     {
@@ -42,6 +44,7 @@ const products = [
         prix: 5000,
         categorie: "Cosmétiques",
         vendeur: "Glow Up",
+        vendeurPhone: "24111111111",
         image: "uploads/1775337429_WhatsApp Image 2026-04-04 at 17.41.31.jpeg"
     },
     {
