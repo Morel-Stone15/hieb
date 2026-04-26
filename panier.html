@@ -143,7 +143,8 @@
 
     <footer><p>&copy; 2026 Hieb - Vous faciliter la vie • Tous droits réservés</p></footer>
 
-    <script>
+    <script type="module">
+        import * as db from './db.js';
         let cart = [];
         const burgerMenu = document.getElementById('burgerMenu');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -222,26 +223,23 @@
             if (confirm("Vider tout le panier ?")) { localStorage.removeItem('cart'); cart = []; renderCart(); }
         };
 
-        window.passerCommande = function() {
+        window.passerCommande = async function() {
             if (cart.length === 0) return;
             
-            // 1. Save to local_orders for Admin tracking
-            const orders = JSON.parse(localStorage.getItem('local_orders') || '[]');
-            const products = JSON.parse(localStorage.getItem('local_products') || '[]');
+            // 1. Save to IndexedDB for Admin tracking
+            const productsInDb = await db.getAll('produits');
             
-            cart.forEach(item => {
-                // Find full product info if possible to get seller name
-                const fullProd = products.find(p => p.id === item.id);
-                orders.push({
-                    id: Date.now() + Math.random(),
+            for (const item of cart) {
+                const fullProd = productsInDb.find(p => p.id === item.id);
+                await db.addData('commandes', {
                     nom: item.name,
                     prix: item.price,
                     quantity: item.quantity || 1,
                     vendeur: fullProd ? fullProd.vendeur : 'Inconnu',
+                    vendeur_id: fullProd ? fullProd.vendeur_id : null,
                     date: new Date().toISOString()
                 });
-            });
-            localStorage.setItem('local_orders', JSON.stringify(orders));
+            }
 
             // 2. Group items by seller for redirection
             const groups = {};

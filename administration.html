@@ -323,13 +323,31 @@
 
 <script type="module">
     import { products as defaultProducts, categories as defaultCategories } from './products.js';
+    import * as db from './db.js';
 
-    let products = JSON.parse(localStorage.getItem('local_products')) || defaultProducts;
-    let categories = JSON.parse(localStorage.getItem('local_categories')) || defaultCategories;
-    let users = JSON.parse(localStorage.getItem('local_users')) || [];
-    let orders = JSON.parse(localStorage.getItem('local_orders')) || [];
+    let products = [];
+    let categories = [];
+    let users = [];
+    let orders = [];
     let currentUser = null;
     let currentImageData = "";
+
+    async function loadAllData() {
+        // Run migration if it hasn't been done yet
+        if (!localStorage.getItem('db_migrated')) {
+            await db.migrateFromLocalStorage();
+            localStorage.setItem('db_migrated', 'true');
+        }
+
+        products = await db.getAll('produits');
+        categories = await db.getAll('categories');
+        users = await db.getAll('vendeurs');
+        orders = await db.getAll('commandes');
+
+        // Fallback to defaults if DB is empty
+        if (products.length === 0) products = defaultProducts;
+        if (categories.length === 0) categories = defaultCategories;
+    }
 
     const loginScreen = document.getElementById('login-screen');
     const adminPanel = document.getElementById('admin-panel');
@@ -347,18 +365,20 @@
         toRegister.style.display = (role === 'admin') ? 'none' : 'block';
     };
 
-    registerForm.onsubmit = (e) => {
+    registerForm.onsubmit = async (e) => {
         e.preventDefault();
         const email = document.getElementById('reg-email').value;
         if (users.find(u => u.email === email)) return alert("Email déjà utilisé !");
-        users.push({ id: Date.now(), name: document.getElementById('reg-name').value, phone: document.getElementById('reg-phone').value, email: email, pass: document.getElementById('reg-pass').value, role: 'vendeur' });
-        localStorage.setItem('local_users', JSON.stringify(users));
+        const newUser = { id: Date.now(), name: document.getElementById('reg-name').value, phone: document.getElementById('reg-phone').value, email: email, pass: document.getElementById('reg-pass').value, role: 'vendeur' };
+        await db.addData('vendeurs', newUser);
+        users.push(newUser);
         alert("Inscription réussie !");
         toLogin.onclick();
     };
 
-    loginForm.onsubmit = (e) => {
+    loginForm.onsubmit = async (e) => {
         e.preventDefault();
+        await loadAllData(); // Ensure fresh data
         const role = document.getElementById('login-role').value;
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
@@ -467,23 +487,35 @@
         `).reverse().join('') || '<tr><td colspan="6" style="text-align:center">Aucune vente enregistrée.</td></tr>';
     }
 
-    window.deleteProduct = (idx) => { if (confirm("Supprimer ce produit ?")) { products.splice(idx, 1); localStorage.setItem('local_products', JSON.stringify(products)); setupUI(); } };
+    window.deleteProduct = async (idx) => { 
+        if (confirm("Supprimer ce produit ?")) { 
+            const prod = products[idx];
+            await db.deleteData('produits', prod.id);
+            products.splice(idx, 1); 
+            setupUI(); 
+        } 
+    };
 
-    window.deleteUser = (userId) => {
+    window.deleteUser = async (userId) => {
         if (confirm("Supprimer ce vendeur et tous ses produits ?")) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
-            // Remove products
+            
+            // Remove products from DB
+            const prodsToDelete = products.filter(p => p.vendeur === user.name);
+            for (const p of prodsToDelete) await db.deleteData('produits', p.id);
+            
             products = products.filter(p => p.vendeur !== user.name);
-            localStorage.setItem('local_products', JSON.stringify(products));
-            // Remove user
+            
+            // Remove user from DB
+            await db.deleteData('vendeurs', userId);
             users = users.filter(u => u.id !== userId);
-            localStorage.setItem('local_users', JSON.stringify(users));
+            
             setupUI();
         }
     };
 
-    document.getElementById('universalProductForm').onsubmit = (e) => {
+    document.getElementById('universalProductForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!currentImageData) return alert("Sélectionnez une image !");
         const isAdm = currentUser.role === 'admin';
@@ -497,7 +529,7 @@
             vendorPhone = '24176483527'; // Default admin phone
         }
 
-        products.push({ 
+        const newProd = { 
             id: Date.now(), 
             nom: document.getElementById('prod-nom').value, 
             description: document.getElementById('prod-desc').value, 
@@ -506,23 +538,28 @@
             vendeur: vendorName, 
             vendeurPhone: vendorPhone,
             image: currentImageData 
-        });
+        };
         
         try {
-            localStorage.setItem('local_products', JSON.stringify(products));
+            await db.addData('produits', newProd);
+            products.push(newProd);
             e.target.reset(); currentImageData = ""; document.getElementById('preview-tag').style.display = 'none'; document.getElementById('img-placeholder').style.display = 'block';
             setupUI(); alert("Produit publié !");
-        } catch(err) { alert("Stockage plein !"); products.pop(); }
+        } catch(err) { alert("Erreur lors de l'ajout !"); console.error(err); }
     };
 
-    document.getElementById('adminCatForm').onsubmit = (e) => {
+    document.getElementById('adminCatForm').onsubmit = async (e) => {
         e.preventDefault();
         const n = document.getElementById('new-cat-name').value, i = document.getElementById('new-cat-icon').value;
         if (!n || !i) return;
-        categories.push({ nom: n, icon: i });
-        localStorage.setItem('local_categories', JSON.stringify(categories));
+        const newCat = { id: Date.now(), nom: n, icon: i };
+        await db.addData('categories', newCat);
+        categories.push(newCat);
         e.target.reset(); setupUI(); alert("Catégorie ajoutée !");
     };
+    
+    // Auto-load data on page load
+    window.onload = loadAllData;
 </script>
 
 </body>
