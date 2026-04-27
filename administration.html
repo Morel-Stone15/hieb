@@ -357,13 +357,18 @@
 
     registerForm.onsubmit = async (e) => {
         e.preventDefault();
-        const email = document.getElementById('reg-email').value;
-        if (users.find(u => u.email === email)) return alert("Email déjà utilisé !");
-        const newUser = { id: Date.now(), name: document.getElementById('reg-name').value, phone: document.getElementById('reg-phone').value, email: email, pass: document.getElementById('reg-pass').value, role: 'vendeur' };
-        await db.addData('vendeurs', newUser);
-        users.push(newUser);
-        alert("Inscription réussie !");
-        toLogin.onclick();
+        try {
+            const email = document.getElementById('reg-email').value;
+            if (users.find(u => u.email === email)) return alert("Email déjà utilisé !");
+            const newUser = { id: Date.now(), name: document.getElementById('reg-name').value, phone: document.getElementById('reg-phone').value, email: email, pass: document.getElementById('reg-pass').value, role: 'vendeur' };
+            await db.addData('vendeurs', newUser);
+            users.push(newUser);
+            alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
+            toLogin.onclick();
+        } catch (err) {
+            console.error(err);
+            alert("Erreur lors de l'inscription : " + (err.message || JSON.stringify(err)));
+        }
     };
 
     loginForm.onsubmit = async (e) => {
