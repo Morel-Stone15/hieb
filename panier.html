@@ -143,8 +143,9 @@
 
     <footer><p>&copy; 2026 Hieb - Vous faciliter la vie • Tous droits réservés</p></footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import * as db from './db.js';
+        import * as db from './supabase.js';
         let cart = [];
         const burgerMenu = document.getElementById('burgerMenu');
         const mobileMenu = document.getElementById('mobileMenu');

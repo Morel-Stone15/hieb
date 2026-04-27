@@ -321,9 +321,9 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module">
-    import { products as defaultProducts, categories as defaultCategories } from './products.js';
-    import * as db from './db.js';
+    import * as db from './supabase.js';
 
     let products = [];
     let categories = [];
@@ -333,20 +333,10 @@
     let currentImageData = "";
 
     async function loadAllData() {
-        // Run migration if it hasn't been done yet
-        if (!localStorage.getItem('db_migrated')) {
-            await db.migrateFromLocalStorage();
-            localStorage.setItem('db_migrated', 'true');
-        }
-
         products = await db.getAll('produits');
         categories = await db.getAll('categories');
         users = await db.getAll('vendeurs');
         orders = await db.getAll('commandes');
-
-        // Fallback to defaults if DB is empty
-        if (products.length === 0) products = defaultProducts;
-        if (categories.length === 0) categories = defaultCategories;
     }
 
     const loginScreen = document.getElementById('login-screen');

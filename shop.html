@@ -363,9 +363,9 @@
         <p>&copy; 2026 Hieb - Vous faciliter la vie • Tous droits réservés</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import { products as defaultProducts, categories as defaultCategories } from './products.js';
-        import * as db from './db.js';
+        import * as db from './supabase.js';
 
         let products = [];
         let categories = [];
@@ -461,9 +461,6 @@
             // Load from DB
             products = await db.getAll('produits');
             categories = await db.getAll('categories');
-
-            if (products.length === 0) products = defaultProducts;
-            if (categories.length === 0) categories = defaultCategories;
 
             // Load categories in filter
             categoryFilter.innerHTML += categories.map(c => `<option value="${c.nom}">${c.nom}</option>`).join('');

@@ -459,11 +459,12 @@
         <p>&copy; 2026 Hieb - Vous faciliter la vie • Tous droits réservés</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import { products as defaultProducts, categories as defaultCategories } from './products.js';
+        import * as db from './supabase.js';
         
-        const products = JSON.parse(localStorage.getItem('local_products')) || defaultProducts;
-        const categories = JSON.parse(localStorage.getItem('local_categories')) || defaultCategories;
+        let products = [];
+        let categories = [];
 
         const burgerMenu = document.getElementById('burgerMenu');
         const mobileMenu = document.getElementById('mobileMenu');
@@ -553,8 +554,12 @@
             }
         }
 
-        window.onload = () => {
+        window.onload = async () => {
             updateCartCount();
+            
+            products = await db.getAll('produits');
+            categories = await db.getAll('categories');
+            
             loadCategories();
             loadFeatured();
         };
